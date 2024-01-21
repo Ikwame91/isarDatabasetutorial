@@ -20,6 +20,34 @@ class NoteDatabase {
     //SAVE TO DB
     await isar.writeTxn(() async {
       isar.notes.put(newNote);
+      await fetchNotes();
+    });
+    //reread from db
+  }
+
+  Future<void> fetchNotes() async {
+    List<Note> fetchNotes = await isar.notes.where().findAll();
+    currentNotes.clear();
+    currentNotes.addAll(fetchNotes);
+  }
+
+  //Update notes in DB
+  Future<void> updateNote(int id, String newText) async {
+    final existinNote = await isar.notes.get(id);
+    if (existinNote != null) {
+      existinNote.text = newText;
+      await isar.writeTxn(() async {
+        await isar.notes.put(existinNote);
+        await fetchNotes();
+      });
+    }
+  }
+
+  //Delete notes from DB
+  Future<void> deleteNotes(int id) async {
+    await isar.writeTxn(() async {
+      await isar.notes.delete(id);
+      await fetchNotes();
     });
   }
 }
